@@ -5,6 +5,17 @@ import requests
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Taxi Fare Prediction", page_icon="🚖", layout="centered")
 
+# --- DEFAULT VALUES ---
+DEFAULTS = {
+    "pickup_date": datetime.today().date(),
+    "pickup_time": datetime.now().time().replace(microsecond=0),
+    "pickup_longitude": 0.0,
+    "pickup_latitude": 0.0,
+    "dropoff_longitude": 0.0,
+    "dropoff_latitude": 0.0,
+    "passenger_count": 1,
+}
+
 # --- HEADER ---
 st.title("🚖 Taxi Fare Model Frontend")
 st.markdown(
@@ -17,31 +28,60 @@ st.markdown(
     """
 )
 
-# --- SESSION STATE FOR RESET ---
-if "reset" not in st.session_state:
-    st.session_state.reset = False
-
 # --- INPUT SECTION ---
 st.subheader("📝 Ride Details")
 
-pickup_date = st.date_input("Pickup Date", datetime.today(), key="pickup_date")
-pickup_time = st.time_input("Pickup Time", datetime.now().time(), key="pickup_time")
+pickup_date = st.date_input(
+    "Pickup Date",
+    value=st.session_state.get("pickup_date", DEFAULTS["pickup_date"]),
+    key="pickup_date"
+)
+pickup_time = st.time_input(
+    "Pickup Time",
+    value=st.session_state.get("pickup_time", DEFAULTS["pickup_time"]),
+    key="pickup_time"
+)
 
 # Coordinates
 st.markdown("### 📍 Pickup & Dropoff Coordinates")
 col1, col2 = st.columns(2)
 
 with col1:
-    pickup_longitude = st.number_input("Pickup Longitude", format="%.6f", key="pickup_longitude")
-    pickup_latitude = st.number_input("Pickup Latitude", format="%.6f", key="pickup_latitude")
+    pickup_longitude = st.number_input(
+        "Pickup Longitude",
+        value=st.session_state.get("pickup_longitude", DEFAULTS["pickup_longitude"]),
+        format="%.6f",
+        key="pickup_longitude"
+    )
+    pickup_latitude = st.number_input(
+        "Pickup Latitude",
+        value=st.session_state.get("pickup_latitude", DEFAULTS["pickup_latitude"]),
+        format="%.6f",
+        key="pickup_latitude"
+    )
 
 with col2:
-    dropoff_longitude = st.number_input("Dropoff Longitude", format="%.6f", key="dropoff_longitude")
-    dropoff_latitude = st.number_input("Dropoff Latitude", format="%.6f", key="dropoff_latitude")
+    dropoff_longitude = st.number_input(
+        "Dropoff Longitude",
+        value=st.session_state.get("dropoff_longitude", DEFAULTS["dropoff_longitude"]),
+        format="%.6f",
+        key="dropoff_longitude"
+    )
+    dropoff_latitude = st.number_input(
+        "Dropoff Latitude",
+        value=st.session_state.get("dropoff_latitude", DEFAULTS["dropoff_latitude"]),
+        format="%.6f",
+        key="dropoff_latitude"
+    )
 
 # Passenger count
 st.markdown("### 👥 Passengers")
-passenger_count = st.number_input("Passenger Count", min_value=1, max_value=8, step=1, key="passenger_count")
+passenger_count = st.number_input(
+    "Passenger Count",
+    min_value=1, max_value=8, step=1,
+    value=st.session_state.get("passenger_count", DEFAULTS["passenger_count"]),
+    key="passenger_count"
+)
 
 # --- DISPLAY SUMMARY ---
 st.markdown("---")
@@ -57,7 +97,7 @@ st.subheader("🔮 Predict Taxi Fare")
 
 url = "https://taxifare-786090284058.europe-west1.run.app/predict"
 
-colA, colB = st.columns([1,1])
+colA, colB = st.columns([1, 1])
 
 with colA:
     predict_btn = st.button("🚀 Predict Fare")
@@ -66,16 +106,18 @@ with colB:
 
 # --- RESET LOGIC ---
 if reset_btn:
-    for key in ["pickup_date","pickup_time","pickup_longitude","pickup_latitude","dropoff_longitude","dropoff_latitude","passenger_count"]:
+    for key in DEFAULTS.keys():
         if key in st.session_state:
             del st.session_state[key]
     st.rerun()
 
 # --- PREDICT LOGIC ---
 if predict_btn:
-    if (pickup_longitude == 0 or pickup_latitude == 0 or 
-        dropoff_longitude == 0 or dropoff_latitude == 0 or 
-        passenger_count <= 0):
+    if (
+        pickup_longitude == 0 or pickup_latitude == 0 or
+        dropoff_longitude == 0 or dropoff_latitude == 0 or
+        passenger_count <= 0
+    ):
         st.error("⚠️ Please provide valid non-zero values for all fields before predicting.")
     else:
         params = {
@@ -84,7 +126,7 @@ if predict_btn:
             "pickup_latitude": pickup_latitude,
             "dropoff_longitude": dropoff_longitude,
             "dropoff_latitude": dropoff_latitude,
-            "passenger_count": passenger_count
+            "passenger_count": passenger_count,
         }
 
         try:
