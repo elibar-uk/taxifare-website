@@ -87,7 +87,7 @@ if predict_btn:
         }
 
         try:
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=30)
             if response.status_code == 200:
                 prediction = response.json().get("fare", None)
                 if prediction is not None:
